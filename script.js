@@ -44,6 +44,18 @@ class Ball {
       ctx.fill();
       // ctx.stroke();
     };
+
+    // function to play sound
+    this.collisionSound = function () {
+      let audio = new Audio("./asset/sound/mixkit-arcade-mechanical-bling-210.mp3")
+      audio.play()
+    }
+
+    // function to play sound when ball moves to background
+    this.ballLeft = function () {
+      let audio = new Audio("./asset/sound/mixkit-ominous-drums-227.wav")
+      audio.play()
+    }
   }
 }
 
@@ -115,40 +127,42 @@ function ballPaddleCollision(ball, paddle) {
   let dy = Math.abs(ball.pos.y - paddle.getCenter().y);
 
   if (
-    dx <= (ball.radius + paddle.getHalfWidth() + 1) &&
-    dy <= (paddle.getHalfHeight() + ball.radius - 1)
+    dx <= ball.radius + paddle.getHalfWidth() + 1 &&
+    dy <= paddle.getHalfHeight() - ball.radius &&
+    paddle.width <= ball.pos.x && 
+    ball.pos.x <= canvas.width - paddle.width
   ) {
     ball.velocity.x *= -1;
+    ball.collisionSound()
   }
 }
 
 // player2 logic to play
-function player2AI(ball,paddle){
-  
-  if (ball.velocity.x > 0){
-    if (ball.pos.y > paddle.pos.y){
+function player2AI(ball, paddle) {
+  if (ball.velocity.x > 0) {
+    if (ball.pos.y > paddle.pos.y) {
       setTimeout(() => {
-        paddle.pos.y += paddle.velocity.y
-      },(Math.random()*90 + 175))
+        paddle.pos.y += paddle.velocity.y;
+      }, Math.random() * 90 + 175);
     }
-    if (ball.pos.y < paddle.pos.y){
+    if (ball.pos.y < paddle.pos.y) {
       setTimeout(() => {
-        paddle.pos.y -= paddle.velocity.y
-      },(Math.random()*90 + 175))
+        paddle.pos.y -= paddle.velocity.y;
+      }, Math.random() * 90 + 175);
     }
   }
 }
 
 // function to respawn the ball
-function respawnBall(ball){
-  if (ball.velocity.x > 0){
+function respawnBall(ball) {
+  if (ball.velocity.x > 0) {
     ball.pos.x = canvas.width - 150;
-    ball.pos.y = (Math.random()*(canvas.height - 200)) + 100
+    ball.pos.y = Math.random() * (canvas.height - 200) + 100;
   }
 
-  if (ball.velocity.x < 0){
-    ball.pos.x = 150
-    ball.pos.y = (Math.random()*(canvas.height - 200)) + 100
+  if (ball.velocity.x < 0) {
+    ball.pos.x = 150;
+    ball.pos.y = Math.random() * (canvas.height - 200) + 100;
   }
 
   ball.velocity.x *= -1;
@@ -156,23 +170,24 @@ function respawnBall(ball){
 }
 
 // function to update the score
-function updateScore(ball,paddle1,paddle2){
-  if (ball.pos.x <= -ball.radius){
-    paddle2.score += 1
-    document.getElementById('player2score').innerHTML = paddle2.score
-    respawnBall(ball)
+function updateScore(ball, paddle1, paddle2) {
+  if (ball.pos.x <= -ball.radius - 150) {
+    paddle2.score += 1;
+    document.getElementById("player2score").innerHTML = paddle2.score;
+    ball.ballLeft()
+    respawnBall(ball);
   }
-  if (ball.pos.x >= (canvas.width + ball.radius)){
-    paddle1.score += 1
-    document.getElementById('player1score').innerHTML = paddle1.score
-    respawnBall(ball)
+  if (ball.pos.x >= canvas.width + ball.radius + 150) {
+    paddle1.score += 1;
+    document.getElementById("player1score").innerHTML = paddle1.score;
+    respawnBall(ball);
   }
 }
 
 // creating a new ball object
 const ball = new Ball(
   vec2(200, 200),
-  vec2(3 + Math.random() * 5, 3 + Math.random() * 5),
+  vec2(6 + Math.random() * 5, 5 + Math.random() * 5),
   20
 );
 
@@ -194,13 +209,13 @@ function gameUpdate() {
   // moving the ball on x and y axis
   paddle1.update();
   ball.update();
-  player2AI(ball,paddle2);
+  player2AI(ball, paddle2);
   paddleCollisionWithEdges(paddle1);
   paddleCollisionWithEdges(paddle2);
   ballPaddleCollision(ball, paddle1);
   ballPaddleCollision(ball, paddle2);
   ballCollisionCheck(ball);
-  updateScore(ball,paddle1,paddle2);
+  updateScore(ball, paddle1, paddle2);
 }
 
 function gameDraw() {
@@ -214,7 +229,7 @@ function gameLoop() {
   // clearing the canvas before drawing the next position
   // ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "rgba(0,0,0,0.2)";
-  ctx.fillRect(0,0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // keeping the loop running by executing it 60 times per second
   window.requestAnimationFrame(gameLoop);
