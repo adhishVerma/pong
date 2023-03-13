@@ -4,8 +4,8 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 // canvas width and height
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.width = window.innerWidth/1.5;
+canvas.height = window.innerHeight/1.5;
 
 // keeping track of key press
 const keysPressed = {};
@@ -14,9 +14,9 @@ window.addEventListener("keydown", function (e) {
   keysPressed[e.key] = true;
 });
 
+
 window.addEventListener("keyup", function (e) {
   keysPressed[e.key] = false;
-  console.log(keysPressed);
 });
 
 // function to give the 2D vector back
@@ -45,17 +45,6 @@ class Ball {
       // ctx.stroke();
     };
 
-    // function to play sound
-    this.collisionSound = function () {
-      let audio = new Audio("./asset/sound/mixkit-arcade-mechanical-bling-210.mp3")
-      audio.play()
-    }
-
-    // function to play sound when ball moves to background
-    this.ballLeft = function () {
-      let audio = new Audio("./asset/sound/mixkit-ominous-drums-227.wav")
-      audio.play()
-    }
   }
 }
 
@@ -127,13 +116,12 @@ function ballPaddleCollision(ball, paddle) {
   let dy = Math.abs(ball.pos.y - paddle.getCenter().y);
 
   if (
-    dx <= ball.radius + paddle.getHalfWidth() + 1 &&
+    dx <= ball.radius + paddle.getHalfWidth() &&
     dy <= paddle.getHalfHeight() - ball.radius &&
     paddle.width <= ball.pos.x && 
     ball.pos.x <= canvas.width - paddle.width
   ) {
     ball.velocity.x *= -1;
-    ball.collisionSound()
   }
 }
 
@@ -143,12 +131,12 @@ function player2AI(ball, paddle) {
     if (ball.pos.y > paddle.pos.y) {
       setTimeout(() => {
         paddle.pos.y += paddle.velocity.y;
-      }, Math.random() * 90 + 175);
+      }, Math.random() * 60 + 130);
     }
     if (ball.pos.y < paddle.pos.y) {
       setTimeout(() => {
         paddle.pos.y -= paddle.velocity.y;
-      }, Math.random() * 90 + 175);
+      }, Math.random() * 60 + 130);
     }
   }
 }
@@ -173,13 +161,10 @@ function respawnBall(ball) {
 function updateScore(ball, paddle1, paddle2) {
   if (ball.pos.x <= -ball.radius - 150) {
     paddle2.score += 1;
-    document.getElementById("player2score").innerHTML = paddle2.score;
-    ball.ballLeft()
     respawnBall(ball);
   }
   if (ball.pos.x >= canvas.width + ball.radius + 150) {
     paddle1.score += 1;
-    document.getElementById("player1score").innerHTML = paddle1.score;
     respawnBall(ball);
   }
 }
@@ -206,7 +191,6 @@ const paddle2 = new Paddle(
 );
 
 function gameUpdate() {
-  // moving the ball on x and y axis
   paddle1.update();
   ball.update();
   player2AI(ball, paddle2);
